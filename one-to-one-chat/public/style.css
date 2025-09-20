@@ -1,0 +1,95 @@
+:root {
+    color-scheme: light dark;
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+.wrap {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: Canvas;
+    color: CanvasText;
+}
+
+.card {
+    width: min(900px, 96vw);
+    background: Canvas;
+    border: 1px solid #ccc;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+}
+
+input,
+button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: Canvas;
+    color: CanvasText;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    opacity: .8;
+}
+
+.list {
+    height: 50vh;
+    overflow: auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    background: colormix(in oklab, Canvas 98%, CanvasText 2%);
+}
+
+.msg {
+    margin: 6px 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: colormix(in oklab, Canvas 92%, CanvasText 8%);
+    max-width: 70ch;
+}
+
+.msg.me {
+    margin-left: auto;
+    background: color-mix(in oklab, CanvasText 12%, Canvas);
+}
+
+.msg .t {
+    opacity: .6;
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+.typing {
+    height: 18px;
+    font-size: 13px;
+    opacity: .7;
+}

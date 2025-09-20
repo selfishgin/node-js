@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>One-To-One-Chat</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>One-To-One-Chat</h1>
+            <form id="joinForm" class="row">
+                <input id="name" placeholder="Your name" required />
+                <input id="room" placeholder="Room code (e.g. 1234)" required />
+                <button type="submit">Join</button>
+            </form>
+            <div id="chat" class="chat hidden">
+                <div class="top">
+                    <div>Room: <span id="roomLbl"></span></div>
+                    <div class="presence" id="presence"></div>
+                </div>
+                <div id="list" class="list"></div>
+                <div id="typing" class="typing"></div>
+                <form id="sendForm" class="row">
+                    <input id="text" placeholder="Type a message and hit Enter" autocomplete="off" />
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        const socket = io();
+        const joinForm = document.getElementById('joinForm');
+        const sendForm = document.getElementById('sendForm');
+        const chat = document.getElementById('chat');
+        const roomLbl = document.getElementById('roomLbl');
+        const list = document.getElementById('list');
+        const presence = document.getElementById('presence');
+        const typingEl = document.getElementById('typing');
+        const nameEl = document.getElementById('name');
+        const roomEl = document.getElementById('room');
+        const textEl = document.getElementById('text');
+        let myName = null; let roomId = null; let typingTimer = null;
+        joinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            myName = nameEl.value.trim();
+            roomId = roomEl.value.trim();
+            if (!myName || !roomId) return;
+            socket.emit('join', { roomId, name: myName });
+            roomLbl.textContent = roomId;
+            joinForm.classList.add('hidden');
+            chat.classList.remove('hidden');
+            textEl.focus();
+        });
+        socket.on('history', (msgs) => {
+            list.innerHTML = '';
+            msgs.forEach(addMsg);
+            list.scrollTop = list.scrollHeight;
+        });
+        socket.on('presence', (users) => {
+            presence.textContent = users.join(' • ');
+        });
+        socket.on('typing', ({ name, isTyping }) => {
+            typingEl.textContent = isTyping ? `${name} is typing…` : '';
+        });
+        socket.on('message', (msg) => {
+            addMsg(msg);
+            list.scrollTop = list.scrollHeight;
+        });
+        sendForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = textEl.value.trim();
+            if (!text) return;
+            socket.emit('message', text);
+            textEl.value = '';
+            socket.emit('typing', false);
+        });
+        textEl.addEventListener('input', () => {
+            socket.emit('typing', true);
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => socket.emit('typing', false), 800);
+        });
+        function addMsg(m) {
+            const div = document.createElement('div');
+            div.className = 'msg' + (m.name === myName ? ' me' : '');
+            const time = new Date(m.ts).toLocaleTimeString();
+            div.innerHTML = `<b>${escapeHtml(m.name)}</b> <span class="t">${time}</span><br>${linkify(escapeHtml(m.text))}`;
+            list.appendChild(div);
+        }
+        function escapeHtml(s) {
+            return s.replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
+        }
+        function linkify(s) {
+            return s.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank">$1<\/a>');
+        }
+    </script>
+</body>
+
+</html>
